@@ -2,52 +2,18 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "shader.h"
+
 #define PROJECT_NAME "Opengl-playground"
 
-static unsigned int CompileShader(unsigned int type, const std::string& source) {
-	unsigned int id = glCreateShader(GL_VERTEX_SHADER);
-	// the source needs to be valid so that the pointer is valid
-	const char* src = source.c_str();
-	glShaderSource(id, 1, &src, nullptr);
-	glCompileShader(id);
-
-	// Error checking for the shader
-	int result;
-	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-	if (result == GL_FALSE) {
-		int length;
-		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char*)alloca(length * sizeof(char));
-		glGetShaderInfoLog(id, length, &length, message);
-		std::cout << "Failed to compile" << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader!" << std::endl;
-		std::cout << message << std::endl;
-		glDeleteShader(id);
-		return 0;
-	}
-	return id;
-}
-
-static unsigned int CreateShader(const std::string& vertexShaderSource, const std::string& fragmentShaderSource) {
-	unsigned int program = glCreateProgram();
-	unsigned int vertex_shader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
-	unsigned int fragment_shader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-	glAttachShader(program, vertex_shader);
-	glAttachShader(program, fragment_shader);
-	glLinkProgram(program);
-	glValidateProgram(program);
-
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
-
-	return program;
-}
 
 int main(int argc, char **argv) {
-	if(argc != 1) {
-		printf("%s takes no arguments.\n", argv[0]);
+	if(argc != 3) {
+		printf("Usage:\n %s <vertex shader source file> <fragment shader source file>", argv[0]);
 		return 1;
 	}
+	std::string vs_path(argv[1]);
+	std::string fs_path(argv[2]);
 	printf("This is project %s.\n", PROJECT_NAME);
 	GLFWwindow* window;
 
@@ -93,6 +59,10 @@ int main(int argc, char **argv) {
 	// the attribute needs to be enabled (the attribute has the index (or identifier) of 0)
 	// so that is used in the enabeling function
 	glEnableVertexAttribArray(0);
+	Shader vertex_shader(vs_path, GL_VERTEX_SHADER);
+	Shader fragment_shader(fs_path, GL_FRAGMENT_SHADER);
+	unsigned int shader = CreateShader(vertex_shader, fragment_shader);
+	glUseProgram(shader);
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
