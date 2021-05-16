@@ -5,6 +5,7 @@ project('Opengl-playground', 'cpp',
 # Sources
 p1_src = ['p1_opengl_playground.cpp']
 p2_src = ['p2_opengl_playground.cpp']
+shader_src = ['shader.h', 'shader.cpp']
 # Dependencies
 glfw = dependency('glfw3')
 glu = dependency('glu')
@@ -15,7 +16,7 @@ opengl = [glfw, glu, glew]
 p1 = executable('p1_opengl_playground', p1_src,
   install : false,
   dependencies : opengl)
-p2 = executable('p2_opengl_playground', p2_src,
+p2 = executable('p2_opengl_playground', sources: [p2_src, shader_src],
   install : false,
   dependencies : opengl)
 
