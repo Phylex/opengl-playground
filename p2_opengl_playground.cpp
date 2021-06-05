@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
