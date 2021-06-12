@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 	glfwWindowHint(GLFW_SAMPLES, 1);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 	
 	if (!window) {
 		std::cerr << "Failed to open GLFW window" << std::endl;
