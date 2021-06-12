@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 	glEnableVertexAttribArray(0);
 	Shader vertex_shader(vs_path, GL_VERTEX_SHADER);
 	Shader fragment_shader(fs_path, GL_FRAGMENT_SHADER);
-	unsigned int shader = CreateShader(vertex_shader, fragment_shader);
+	unsigned int shader = CreateShaderProgram(vertex_shader, fragment_shader);
 	glUseProgram(shader);
 
 	/* Loop until the user closes the window */

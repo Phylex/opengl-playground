@@ -2,6 +2,7 @@
 #define SHADER_H
 
 #include <GL/glew.h>
+#include <GL/gl.h>
 #include <string>
 #include <fstream>
 
@@ -14,5 +15,5 @@ struct Shader {
 	void bind_to_program(unsigned int program_id);
 };
 
-unsigned int CreateShader(Shader vertex_shader, Shader fragment_shader);
+unsigned int CreateShaderProgram(Shader vertex_shader, Shader fragment_shader);
 #endif

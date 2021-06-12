@@ -1,6 +1,6 @@
 project('Opengl-playground', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=3'])
+  default_options : ['warning_level=3', 'default_lib=static_library'])
 
 # Sources
 p1_src = ['p1_opengl_playground.cpp']
@@ -16,20 +16,35 @@ glew = dependency('glew')
 glm = dependency('glm')
 opengl = [glfw, glu, glew]
 
+shader_lib = library('shader',
+  shader_src,
+  version: '0.1',
+  dependencies: opengl)
+airfoil_load_lib = library('airfoil_load', 
+  airfoil_load_src,
+  version: '0.1')
+
 # executable definition 
-p1 = executable('p1', p1_src,
+p1 = executable('p1',
+  sources: [p1_src],
+  link_with: shader_lib,
   install : false,
   dependencies : [opengl, glm])
 
-p2 = executable('p2', sources: [p2_src, shader_src],
+p2 = executable('p2',
+  sources: [p2_src, ],
+  link_with: shader_lib,
   install : false,
   dependencies : opengl)
 
-p3 = executable('p3', sources: [p3_src, shader_src, airfoil_load_src],
+p3 = executable('p3',
+  sources: [p3_src, ],
+  link_with: [shader_lib, airfoil_load_lib],
   install : false,
   dependencies : opengl)
 
-p4 = executable('p4', sources: [p4_src, shader_src],
+p4 = executable('p4', sources: [p4_src, ],
+  link_with: shader_lib,
   install : false,
   dependencies : opengl)
 #test('basic', exe)
