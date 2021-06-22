@@ -7,6 +7,7 @@ p1_src = ['p1_opengl_playground.cpp']
 p2_src = ['p2_opengl_playground.cpp']
 p3_src = ['p3_opengl_playground.cpp']
 p4_src = ['p4_openGL.cpp']
+p5_src = ['p5_openGL.cpp']
 shader_src = ['shader.h', 'shader.cpp']
 airfoil_load_src = ['load_airfoil.h', 'load_airfoil.cpp']
 # Dependencies
@@ -14,7 +15,7 @@ glfw = dependency('glfw3')
 glu = dependency('glu')
 glew = dependency('glew')
 glm = dependency('glm')
-opengl = [glfw, glu, glew]
+opengl = [glfw, glu, glew, glm]
 
 shader_lib = library('shader',
   shader_src,
@@ -44,6 +45,11 @@ p3 = executable('p3',
   dependencies : opengl)
 
 p4 = executable('p4', sources: [p4_src, ],
+  link_with: shader_lib,
+  install : false,
+  dependencies : opengl)
+
+p5 = executable('p5', sources: [p5_src, ],
   link_with: shader_lib,
   install : false,
   dependencies : opengl)

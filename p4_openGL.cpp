@@ -2,7 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <math.h>
-
+#include <glm/glm.hpp>
 #include "shader.h"
 
 #define PROJECT_NAME "opengl-uniforms"
@@ -37,6 +37,10 @@ int main(int argc, char **argv) {
 	printf("This is project %s.\n", PROJECT_NAME);
 	GLFWwindow* window;
 
+	glfwWindowHint(GLFW_SAMPLES, 1);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	if (!glfwInit())
 		return -1;
@@ -70,12 +74,25 @@ int main(int argc, char **argv) {
 		2, 3, 0
 	};
 
-	unsigned int buffer_id;
-	unsigned int ib_id;
+	// load, compile and link the shaders into the program that the gpu executes
+	Shader vertex_shader(vs_path, GL_VERTEX_SHADER);
+	Shader fragment_shader(fs_path, GL_FRAGMENT_SHADER);
+	unsigned int shader = CreateShaderProgram(vertex_shader, fragment_shader);
+	// give the uniform used in this shader an index with which to bind
+	// data to
+	GLCall(int u_Color_loc = glGetUniformLocation(shader, "u_Color"));
+	ASSERT(u_Color_loc != -1);
+	
+	// this creates and binds a vertex array. It contains with it a definition
+	// of the layout of the data in the buffer and a link to the actual buffer itself
+	unsigned int vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
 	
 	// here a buffer is generated
-	glGenBuffers(1, &buffer_id);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
+	unsigned int buf_id;
+	glGenBuffers(1, &buf_id);
+	glBindBuffer(GL_ARRAY_BUFFER, buf_id);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
 	// tell opengl what is in the buffer, (once per attribute)
@@ -84,30 +101,29 @@ int main(int argc, char **argv) {
 	glEnableVertexAttribArray(0);
 
 	// create an index buffer so that the indices don't need to be duplicated
-	glGenBuffers(1, &ib_id);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ib_id);
+	unsigned int index_buf_id;
+	glGenBuffers(1, &index_buf_id);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buf_id);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// load, compile and link the shaders into the program that the gpu executes
-	Shader vertex_shader(vs_path, GL_VERTEX_SHADER);
-	Shader fragment_shader(fs_path, GL_FRAGMENT_SHADER);
-	unsigned int shader = CreateShaderProgram(vertex_shader, fragment_shader);
-	glUseProgram(shader);
-
-	GLCall(int u_Color_loc = glGetUniformLocation(shader, "u_Color"));
-	ASSERT(u_Color_loc != -1);
+	// bind an empty array object
+	glBindVertexArray(0);
 
 	float hue = 0.0;
 	float increment = 0.01;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
-		glClear(GL_COLOR_BUFFER_BIT);
-		// this is the draw call to OpenGL
+		// calculate the new color for the rectangle
 		hue = fmod((hue + increment),(2*PI));
 		float r = sin(hue);
 		float g = sin(hue+(2./3.*PI));
 		float b = sin(hue+(4./3.*PI));
+		
+		glClear(GL_COLOR_BUFFER_BIT);
+		glUseProgram(shader);
+		glBindVertexArray(vao);
 		GLCall(glUniform4f(u_Color_loc, r, g, b, 1.0f));
+		// this is the draw call to OpenGL
 		GLCall(glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(unsigned int), GL_UNSIGNED_INT, nullptr));
 		glfwSwapBuffers(window);
 		glfwPollEvents();
