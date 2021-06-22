@@ -69,12 +69,16 @@ int main(int argc, char **argv) {
 
 	// the following block is the initialisation and copying of the data into
 	// the memory space of the OpenGL implementation
-	float vetrices[] = {
+	float vertices[] = {
 		// position			// Colour			// Texture
 		-.5,-.5, 0.,		1.0, 0.0, 0.0,		0.0, 0.0,
 		 .5,-.5, 0.,		0.0, 1.0, 0.0,		1.0, 0.0,
 		 .5, .5, 0.,		0.0, 0.0, 1.0,		1.0, 1.0,
 		-.5, .5, 0.,		1.0, 1.0, 0.0,		0.0, 1.0,
+	};
+
+	float v0[] = {
+		0.002, 0.001
 	};
 
 	unsigned int indices[] = {
@@ -94,7 +98,7 @@ int main(int argc, char **argv) {
 	// here a buffer is generated
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vetrices), vetrices, GL_STATIC_DRAW);
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW));
 
 	// tell opengl what is in the buffer, (once per attribute)
 	// also enable the attribute
@@ -128,7 +132,7 @@ int main(int argc, char **argv) {
 	unsigned char *data = stbi_load(texture1_path.c_str(), &width, &height, &nrChannels, 0);
 	if (data) {
 		std::cout << "width: " << width << " height: " << height << " channels: " << nrChannels << std::endl;
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	} else {
 		std::cerr << "Failed to load the Texture " << texture1_path << std::endl;
@@ -167,6 +171,19 @@ int main(int argc, char **argv) {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 		glBindVertexArray(vao);
 		// this is the draw call to OpenGL
+		if (vertices[0] < -1.)
+			v0[0] = abs(v0[0]);
+		if (vertices[1] < -1.)
+			v0[1] = abs(v0[1]);
+		if (vertices[16] > 1.)
+			v0[0] = -abs(v0[0]);
+		if (vertices[17] > 1.)
+			v0[1] = -abs(v0[1]);
+		for (int i=0; i<4; i++) {
+			vertices[i*8] += v0[0];
+			vertices[i*8+1] += v0[1];
+		}
+		GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW));
 		GLCall(glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(unsigned int), GL_UNSIGNED_INT, nullptr));
 		glfwSwapBuffers(window);
 		glfwPollEvents();
