@@ -8,6 +8,7 @@ p2_src = ['p2_opengl_playground.cpp']
 p3_src = ['p3_opengl_playground.cpp']
 p4_src = ['p4_openGL.cpp']
 p5_src = ['p5_openGL.cpp']
+convex_hull_src = ['convex_hull.cpp']
 shader_src = ['shader.h', 'shader.cpp']
 airfoil_load_src = ['load_airfoil.h', 'load_airfoil.cpp']
 # Dependencies
@@ -50,6 +51,11 @@ p4 = executable('p4', sources: [p4_src, ],
   dependencies : opengl)
 
 p5 = executable('p5', sources: [p5_src, ],
+  link_with: shader_lib,
+  install : false,
+  dependencies : opengl)
+
+ch = executable('ch', sources: [convex_hull_src, ],
   link_with: shader_lib,
   install : false,
   dependencies : opengl)
