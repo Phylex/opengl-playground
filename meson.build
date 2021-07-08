@@ -11,6 +11,8 @@ p5_src = ['p5_openGL.cpp']
 convex_hull_src = ['convex_hull.cpp']
 shader_src = ['shader.h', 'shader.cpp']
 airfoil_load_src = ['load_airfoil.h', 'load_airfoil.cpp']
+point_cloud_src = ['PointCloud.cpp', 'PointCloud.h']
+polyline_src = ['PolyLine.cpp', 'PolyLine.h']
 # Dependencies
 glfw = dependency('glfw3')
 glu = dependency('glu')
@@ -25,6 +27,17 @@ shader_lib = library('shader',
 airfoil_load_lib = library('airfoil_load', 
   airfoil_load_src,
   version: '0.1')
+PointCloud_lib = library('point_cloud',
+  point_cloud_src,
+  version: '0.1',
+  dependencies: opengl,
+  link_with: shader_lib)
+PolyLine_lib = library('polyline',
+  polyline_src,
+  version: '0.1',
+  dependencies: opengl,
+  link_with: shader_lib)
+
 
 # executable definition 
 p1 = executable('p1',
@@ -56,7 +69,7 @@ p5 = executable('p5', sources: [p5_src, ],
   dependencies : opengl)
 
 ch = executable('ch', sources: [convex_hull_src, ],
-  link_with: shader_lib,
+  link_with: [shader_lib, PointCloud_lib, PolyLine_lib],
   install : false,
   dependencies : opengl)
 #test('basic', exe)

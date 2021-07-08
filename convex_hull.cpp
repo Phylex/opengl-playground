@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <algorithm>
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
 #include <math.h>
 #include <glm/glm.hpp>
@@ -9,6 +11,8 @@
 #include <thread>
 #define STB_IMAGE_IMPLEMENTATION
 #include "shader.h"
+#include "PointCloud.h"
+#include "PolyLine.h"
 
 #define PROJECT_NAME "opengl-textures"
 #define PI 3.14159265
@@ -66,116 +70,52 @@ GLFWwindow* init_window(void (*size_callback)(GLFWwindow*, int, int)) {
 	return window;
 }
 
-class PointCloud {
-	public:
-		PointCloud(std::vector<glm::vec2>&, ShaderProgram*);
-		void add_points(glm::vec2);
-		void add_points(std::vector<glm::vec2>&);
-		void print_points();
-		void draw();
-	private:
-		std::vector<glm::vec2> points;
-		void init_gl_context();
-		void fill_vertex_buffer(std::vector<float>&);
-		void write_points_to_gl_array();
-		unsigned int vao;
-		unsigned int vbo;
-		ShaderProgram *shader;
-};
-
-void PointCloud::init_gl_context() {
-	std::cout << "Binding VAO " << vao << std::endl;
-	GLCall(glBindVertexArray(vao));
-	std::cout << "Binding VBO " << vbo << std::endl;
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+bool sort_by_x(const glm::vec2 &v1, const glm::vec2 &v2) {
+	return v1.x < v2.x;
 }
 
-PointCloud::PointCloud(std::vector<glm::vec2> &in_points, ShaderProgram *in_shader) {
-	points = in_points;
-	shader = in_shader;
-	std::cout << "Generating VAO ";
-	GLCall(glGenVertexArrays(1, &vao));
-	std::cout << vao << std::endl;
-	std::cout << "Generating VBO ";
-	GLCall(glGenBuffers(1, &vbo));
-	std::cout << vbo << std::endl;
-	init_gl_context();
-	write_points_to_gl_array();
-	std::cout << "Setting the vertex attribute to two floats at index 1" << std::endl;
-	GLCall(glVertexAttribPointer(0, 4,
-						  GL_FLOAT,
-						  GL_FALSE,
-						  sizeof(float)*4,
-						  0));
-	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glBindVertexArray(0));
-}
-
-void PointCloud::add_points(glm::vec2 point) {
-	points.push_back(point);
-	init_gl_context();
-	write_points_to_gl_array();
-	GLCall(glBindVertexArray(0));
-}
-
-void PointCloud::add_points(std::vector<glm::vec2>& add_points) {
-	for (auto p: add_points) {
-		points.push_back(p);
+std::vector<glm::vec2> convex_hull(std::vector<glm::vec2> points) {
+	std::sort(points.begin(), points.end(), sort_by_x);
+	std::vector<glm::vec2> chull;
+	// compute upper hull
+	chull.push_back(points[0]);
+	int position = 1;
+	while(points[position].y <= chull.back().y && position < points.size()) {
+		position +=1;
 	}
-	init_gl_context();
-	write_points_to_gl_array();
-	GLCall(glBindVertexArray(0));
-}
-
-void print_vb_content(std::vector<float> &vb_content){
-	int i = 0;
-	for (auto v: vb_content) {
-		if (i == 0)
-			std::cout << '(' << v;
-		else if (i == 3)
-			std::cout << ", " << v << ')' << std::endl;
-		else
-			std::cout << ", " << v;
-		i += 1;
-		i %= 4;
+	chull.push_back(points[position]);
+	position += 1;
+	while (position < points.size()) {
+		size_t end = chull.size()-1;
+		glm::vec2 v1 = chull[end] - chull[end-1];
+		glm::vec2 v2 = points[position] - chull[end];
+		glm::vec3 x = glm::cross(glm::vec3(v1.x, v1.y, 0), glm::vec3(v2.x, v2.y, 0));
+		if (x.z < 0 ) {
+			chull.push_back(points[position]);
+			position += 1;
+		}
+		else if(x.z >= 0 ) {
+			chull.pop_back();
+		}
 	}
-	std::cout << std::endl;
-}
-
-void PointCloud::write_points_to_gl_array() {
-	std::vector<float> vb_content;
-	fill_vertex_buffer(vb_content);
-	std::cout << "Writing the following data to the VBO " << vbo << std::endl;
-	print_vb_content(vb_content);
-	GLCall(glBufferData(GL_ARRAY_BUFFER,
-						vb_content.size()*sizeof(float),
-						&vb_content.front(), GL_DYNAMIC_DRAW)
-	);
-}
-
-void PointCloud::fill_vertex_buffer(std::vector<float>& vb_content) {
-	for(auto p: points) {
-		vb_content.push_back(p.x);
-		vb_content.push_back(p.y);
-		vb_content.push_back(0.);
-		vb_content.push_back(1.);
+	position -= 1;
+	while(points[position].y >= chull.back().y && position > 0) {
+		position -= 1;
 	}
-}
-
-void PointCloud::draw() {
-	init_gl_context();
-	std::cout << "Binding Shader Program " << shader->id << std::endl;
-	shader->use();
-	std::cout << "Issuing Draw Call for " << points.size() << " Points" << std::endl;
-	GLCall(glDrawArrays(GL_POINTS, 0, points.size()));
-	std::cout << "Binding VAO 0" << std::endl;
-	GLCall(glBindVertexArray(0));
-}
-
-void PointCloud::print_points() {
-	for (auto v: points) {
-		std::cout << '(' << v.x << ", " << v.y << ')' << std::endl;
+	while (position >= 0) {
+		size_t end = chull.size()-1;
+		glm::vec2 v1 = chull[end] - chull[end-1];
+		glm::vec2 v2 = points[position] - chull[end];
+		glm::vec3 x = glm::cross(glm::vec3(v1.x, v1.y, 0),glm::vec3(v2.x, v2.y, 0));
+		if (x.z < 0) {
+			chull.push_back(points[position]);
+			position -= 1;
+		}
+		else if(x.z >= 0) {
+			chull.pop_back();
+		}
 	}
+	return chull;
 }
 
 
@@ -202,21 +142,24 @@ int main(int argc, char **argv) {
 		glm::vec2 r = glm::vec2(dis(gen), dis(gen));
 		random_vectors.push_back(r);
 	}
+	std::sort(random_vectors.begin(), random_vectors.end(), sort_by_x);
 	glPointSize(3.);
 	PointCloud pc = PointCloud(random_vectors, &shader);
+	std::sort(random_vectors.begin(), random_vectors.end(), sort_by_x);
+	std::vector<glm::vec2> chull_points = convex_hull(random_vectors);
+	Polyline conv_hull = Polyline(chull_points, &shader);
 	
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 		// this is the draw call to OpenGL
-
 		pc.draw();
+		conv_hull.draw();
 
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		//std::this_thread::sleep_for(std::chrono::seconds(1));
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 	glfwTerminate();
 	return 0;
 }
-
