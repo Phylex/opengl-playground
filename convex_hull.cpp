@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
 	std::sort(random_vectors.begin(), random_vectors.end(), sort_by_x);
 	glPointSize(3.);
 	PointCloud pc = PointCloud(random_vectors, &shader);
-	std::sort(random_vectors.begin(), random_vectors.end(), sort_by_x);
 	std::vector<glm::vec2> chull_points = convex_hull(random_vectors);
 	Polyline conv_hull = Polyline(chull_points, &shader);
 	
