@@ -1,1 +1,4 @@
 /build
+/assets/*.png
+/assets/*.jpg
+compile_commands.json
