@@ -26,7 +26,7 @@ void PointCloud::init_gl_context() {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
 }
 
-PointCloud::PointCloud(std::vector<glm::vec2> &in_points, ShaderProgram *in_shader) {
+PointCloud::PointCloud(std::vector<glm::vec3> &in_points, ShaderProgram *in_shader) {
 	points = in_points;
 	shader = in_shader;
 	GLCall(glGenVertexArrays(1, &vao));
@@ -42,14 +42,14 @@ PointCloud::PointCloud(std::vector<glm::vec2> &in_points, ShaderProgram *in_shad
 	GLCall(glBindVertexArray(0));
 }
 
-void PointCloud::add_points(glm::vec2 point) {
+void PointCloud::add_points(glm::vec3 point) {
 	points.push_back(point);
 	init_gl_context();
 	write_points_to_gl_array();
 	GLCall(glBindVertexArray(0));
 }
 
-void PointCloud::add_points(std::vector<glm::vec2>& add_points) {
+void PointCloud::add_points(std::vector<glm::vec3>& add_points) {
 	for (auto p: add_points) {
 		points.push_back(p);
 	}
@@ -63,7 +63,7 @@ void PointCloud::write_points_to_gl_array() {
 	for(auto p: points) {
 		vb_content.push_back(p.x);
 		vb_content.push_back(p.y);
-		vb_content.push_back(0.);
+		vb_content.push_back(p.z);
 		vb_content.push_back(1.);
 	}
 	GLCall(glBufferData(GL_ARRAY_BUFFER,
@@ -81,7 +81,7 @@ void PointCloud::draw() {
 
 void PointCloud::print_points() {
 	for (auto v: points) {
-		std::cout << '(' << v.x << ", " << v.y << ')' << std::endl;
+		std::cout << '(' << v.x << ", " << v.y << ", " << v.z << ')' << std::endl;
 	}
 }
 

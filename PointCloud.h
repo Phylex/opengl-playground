@@ -9,13 +9,13 @@
 
 class PointCloud {
 	public:
-		PointCloud(std::vector<glm::vec2>&, ShaderProgram*);
-		void add_points(glm::vec2);
-		void add_points(std::vector<glm::vec2>&);
+		PointCloud(std::vector<glm::vec3>&, ShaderProgram*);
+		void add_points(glm::vec3);
+		void add_points(std::vector<glm::vec3>&);
 		void print_points();
 		void draw();
 	private:
-		std::vector<glm::vec2> points;
+		std::vector<glm::vec3> points;
 		unsigned int vao;
 		unsigned int vbo;
 		ShaderProgram *shader;
