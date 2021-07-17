@@ -9,10 +9,12 @@ p3_src = ['p3_opengl_playground.cpp']
 p4_src = ['p4_openGL.cpp']
 p5_src = ['p5_openGL.cpp']
 convex_hull_src = ['convex_hull.cpp']
+test_3d_src = ['3D_test.cpp']
 shader_src = ['shader.h', 'shader.cpp']
 airfoil_load_src = ['load_airfoil.h', 'load_airfoil.cpp']
 point_cloud_src = ['PointCloud.cpp', 'PointCloud.h']
 polyline_src = ['PolyLine.cpp', 'PolyLine.h']
+graphic_primitive_src = ['GraphicPrimitive.h', 'GraphicPrimitive.cpp']
 # Dependencies
 glfw = dependency('glfw3')
 glu = dependency('glu')
@@ -37,7 +39,11 @@ PolyLine_lib = library('polyline',
   version: '0.1',
   dependencies: opengl,
   link_with: shader_lib)
-
+GraphicPrimitive_lib = library('graphicprimitive',
+  graphic_primitive_src,
+  version: '0.1',
+  dependencies: opengl,
+  link_with: shader_lib)
 
 # executable definition 
 p1 = executable('p1',
@@ -72,4 +78,9 @@ ch = executable('ch', sources: [convex_hull_src, ],
   link_with: [shader_lib, PointCloud_lib, PolyLine_lib],
   install : false,
   dependencies : opengl)
+
+test_3d = executable('t3d', sources: [test_3d_src, ],
+  link_with: [shader_lib, GraphicPrimitive_lib],
+  install: false,
+  dependencies: opengl)
 #test('basic', exe)
