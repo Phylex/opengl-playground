@@ -107,7 +107,10 @@ int main(int argc, char **argv) {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	// bind an empty array object
+	// I want to test if in fact the binding of the vao also binds the vbo and ibo
 	glBindVertexArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	float hue = 0.0;
 	float increment = 0.01;
@@ -121,6 +124,7 @@ int main(int argc, char **argv) {
 		
 		glClear(GL_COLOR_BUFFER_BIT);
 		glUseProgram(shader);
+		// here only the vao is bound
 		glBindVertexArray(vao);
 		GLCall(glUniform4f(u_Color_loc, r, g, b, 1.0f));
 		// this is the draw call to OpenGL
