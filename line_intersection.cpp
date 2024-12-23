@@ -5,9 +5,6 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
-#include <glm/gtx/transform.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <math.h>
 #include <glm/glm.hpp>
 #include <chrono>
@@ -16,7 +13,7 @@
 #include "shader.h"
 #include "GraphicPrimitive.h"
 
-#define PROJECT_NAME "opengl-3D-Tests"
+#define PROJECT_NAME "opengl-textures"
 #define PI 3.14159265
 
 #define ASSERT(x) if(!(x)) exit(2);
@@ -76,6 +73,8 @@ bool sort_by_x(const glm::vec2 &v1, const glm::vec2 &v2) {
 	return v1.x < v2.x;
 }
 
+std::vector<glm::vec3> line_intersections(std::vector<glm::vec3> lines) {
+
 
 int main(int argc, char **argv) {
 	int rnd_num_amount = 20;
@@ -85,8 +84,8 @@ int main(int argc, char **argv) {
 	} else if (argc == 2) {
 		rnd_num_amount = std::stoi(argv[1]);
 	}
-	std::string vs_path = "../assets/shader/basic_3D.vert";
-	std::string fs_path = "../assets/shader/basic_3D.frag";
+	std::string vs_path = "../assets/shader/conv_hull.vert";
+	std::string fs_path = "../assets/shader/conv_hull.frag";
 	printf("This is project %s.\n", PROJECT_NAME);
 
 	// create a window and initalize it with the settings we want
@@ -100,59 +99,26 @@ int main(int argc, char **argv) {
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<float> dis(-1.0, 1.0);
 	for (int i=0; i<rnd_num_amount; ++i) {
-		glm::vec3 r = glm::vec3(dis(gen), dis(gen), dis(gen));
+		glm::vec3 r = glm::vec3(dis(gen), dis(gen), 0.);
 		random_vectors.push_back(r);
 	}
 	glPointSize(3.);
-	
-	// specify the color of the points as green
-	glm::vec4 green = glm::vec4(0., 0.8, 0., 1.);
-	glm::vec4 green_blue = glm::vec4(0., 0.8, 1., 1.);
-	// create the points
-	GraphicalPrimitive lc = GraphicalPrimitive(random_vectors, &shader, GL_POINTS, green_blue);
-	GraphicalPrimitive pc = GraphicalPrimitive(random_vectors, &shader, GL_LINES, green);
-	
-	// set up the variables for the perspective transformation
-	int width, height;
-	float FoV = 45.;
-	GLCall(unsigned int view_matrix_loc = glGetUniformLocation(shader.id, "u_viewport_matrix"));
+	glm::vec4 green(0., 0.9, 0., 1.);
+	glm::vec4 blue_ish(0.,0.8, 0.9, 1.);
+	GraphicalPrimitive linecloud = GraphicalPrimitive(random_vectors, &shader, GL_LINES, green);
+	GraphicalPrimitive line_ends = GraphicalPrimitive(random_vectors, &shader, GL_POINTS, blue_ish);
 
-	// set up the constant variables for the viewport orientation transformation
-	glm::vec3 viewport_up = glm::vec3(0.f, 1.f, 0.f);
-	float angle = 0;
-	float distance = 3;
+	
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		glfwGetWindowSize(window, &width, &height);
-		glm::mat4 view_projection = glm::perspective(
-				glm::radians(FoV),
-				(float)width/(float)height,
-				0.1f,
-				100.f
-		);
-
-		glm::vec3 viewport_pos = glm::vec3(std::sin(angle), 0., std::cos(angle));
-		glm::vec3 viewport_target = glm::vec3(-std::sin(angle), 0., -std::cos(angle));
-		glm::mat4 viewport_location_matrix = glm::lookAt(
-				viewport_pos * distance,
-				viewport_target,
-				viewport_up
-		);
-
-		glm::mat4 view_matrix = view_projection * viewport_location_matrix;
-		
-		//set up the viewport transformation
-		shader.use();
-		GLCall(glUniformMatrix4fv(view_matrix_loc, 1, GL_FALSE, glm::value_ptr(view_matrix)));
-		
+		// this is the draw call to OpenGL
 		pc.draw();
-		lc.draw();
+		conv_hull.draw();
 
+		//std::this_thread::sleep_for(std::chrono::seconds(1));
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		angle += 0.01;
 	}
 	glfwTerminate();
 	return 0;

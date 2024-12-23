@@ -48,12 +48,10 @@ void GraphicalPrimitive::init() {
 	// load the color value for the points
 	GLCall(ucolor = glGetUniformLocation(shader->id, "u_color"));
 	ASSERT(ucolor != -1);
-	GLCall(glUniform4f(ucolor, color.x, color.y, color.z, color.w));
 
 	// load the matrix transforming the points from model space to world space
 	GLCall(u_model_matrix = glGetUniformLocation(shader->id, "u_model_matrix"));
 	ASSERT(u_model_matrix != -1);
-	GLCall(glUniformMatrix4fv(u_model_matrix, 1, GL_FALSE, glm::value_ptr(model_matrix)));
 
 	GLCall(glBindVertexArray(0));
 }
@@ -113,6 +111,8 @@ void GraphicalPrimitive::write_indices_to_ibo() {
 void GraphicalPrimitive::draw() {
 	init_gl_context();
 	shader->use();
+	GLCall(glUniform4f(ucolor, color.x, color.y, color.z, color.w));
+	GLCall(glUniformMatrix4fv(u_model_matrix, 1, GL_FALSE, glm::value_ptr(model_matrix)));
 	GLCall(glDrawElements(gl_render_type, indices.size(), GL_UNSIGNED_INT, 0));
 	GLCall(glBindVertexArray(0));
 }

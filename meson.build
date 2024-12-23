@@ -10,6 +10,8 @@ p4_src = ['p4_openGL.cpp']
 p5_src = ['p5_openGL.cpp']
 convex_hull_src = ['convex_hull.cpp']
 test_3d_src = ['3D_test.cpp']
+line_intersection_src = ['line_intersection.cpp']
+
 shader_src = ['shader.h', 'shader.cpp']
 airfoil_load_src = ['load_airfoil.h', 'load_airfoil.cpp']
 point_cloud_src = ['PointCloud.cpp', 'PointCloud.h']
@@ -20,6 +22,7 @@ glfw = dependency('glfw3')
 glu = dependency('glu')
 glew = dependency('glew')
 glm = dependency('glm')
+xml = dependency('pugixml')
 opengl = [glfw, glu, glew, glm]
 
 shader_lib = library('shader',
@@ -74,7 +77,7 @@ p5 = executable('p5', sources: [p5_src, ],
   install : false,
   dependencies : opengl)
 
-ch = executable('ch', sources: [convex_hull_src, ],
+convex_hull = executable('ch', sources: [convex_hull_src, ],
   link_with: [shader_lib, PointCloud_lib, PolyLine_lib],
   install : false,
   dependencies : opengl)
@@ -83,4 +86,11 @@ test_3d = executable('t3d', sources: [test_3d_src, ],
   link_with: [shader_lib, GraphicPrimitive_lib],
   install: false,
   dependencies: opengl)
+
+line_intersection = executable('lineinterseciton',
+  sources: [line_intersection_src, ],
+  link_with: [shader_lib, GraphicPrimitive_lib],
+  install: false,
+  dependencies: opengl)
 #test('basic', exe)
+
